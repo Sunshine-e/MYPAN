@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx" 
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:cache="http://www.springframework.org/schema/cache"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.1.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+        http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-4.1.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.1.xsd
+        http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.1.xsd
+        ">
+	 <!-- 全局异常配置 -->
+	<bean id="exceptionResolver" class="com.ittahac.maker.exception.ExceptionResolver"/>	
+	
+    <context:component-scan base-package="com.ittahac.*">
+    	
+    </context:component-scan>   
+   
+    
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    	<!--1024*200即200k-->  
+        <property name="maxUploadSize" value="50048576"/>  
+        <!--resolveLazily属性启用是为了推迟文件解析，以便在UploadAction 中捕获文件大小异常-->  
+        <property name="resolveLazily" value="true"/>    
+    </bean>  
+    
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+    
+	<!-- turn on declarative caching -->
+    <tx:annotation-driven />
+    <cache:annotation-driven />
+    
+ <bean id="simpleCacheManager" class="org.springframework.cache.support.SimpleCacheManager"> 
+     <property name="caches"> 
+       <set> 
+         <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
+             <property name="name" value="securityCache"/>
+         </bean> 
+         <bean class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean">
+             <property name="name" value="neverExpireCache"/>
+         </bean> 
+       </set> 
+     </property> 
+   </bean>
+	<bean id="cacheManager" class="org.springframework.cache.support.CompositeCacheManager">  
+	    <property name="cacheManagers">  
+	        <list>  
+	            <ref bean="simpleCacheManager"/> 
+	        </list>  
+	    </property>  
+	    <property name="fallbackToNoOpCache" value="true"/>  
+	</bean> 
+	
+	<import resource="classpath:spring/spring-servlet.xml"/>
+	<import resource="classpath:spring/spring-dao.xml"/>
+</beans>
